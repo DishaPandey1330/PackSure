@@ -120,7 +120,9 @@ export default function App() {
 
   const loadHistory = async () => {
     try {
-      const res = await fetch(`${API_BASE}/history`);
+      const res = await fetch(`${API_BASE}/history`, {
+        headers: { "Bypass-Tunnel-Remainder": "true" },
+      });
       const contentType = res.headers.get("content-type") || "";
       if (!res.ok || !contentType.includes("application/json")) return;
       const data = await res.json();
@@ -138,7 +140,11 @@ export default function App() {
     try {
       const formData = new FormData();
       formData.append("image", file);
-      const res = await fetch(`${API_BASE}/scan`, { method: "POST", body: formData });
+      const res = await fetch(`${API_BASE}/scan`, {
+        method: "POST",
+        headers: { "Bypass-Tunnel-Remainder": "true" },
+        body: formData,
+      });
       const data = await parseJsonResponse(res);
       setResult(data);
       loadHistory();
