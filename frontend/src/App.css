@@ -1,0 +1,369 @@
+.app {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 20px 60px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.topbar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px 0 16px;
+  border-bottom: 3px solid #1f3864;
+}
+
+.logo-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.logo {
+  font-size: 26px;
+  font-weight: 800;
+  color: #1f3864;
+}
+
+.tagline {
+  color: #4b5568;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.team-tag {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f3864;
+  background: #f0f4f9;
+  border: 1px solid #d7dce6;
+  border-radius: 6px;
+  padding: 4px 10px;
+}
+
+.main {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.upload-panel, .result-panel, .history-panel {
+  background: #fff;
+  border: 1px solid #e2e6ee;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.history-panel { margin-top: 24px; }
+
+h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f3864;
+  margin: 0 0 14px;
+}
+
+.dropzone {
+  border: 2px dashed #b7c1d6;
+  border-radius: 10px;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #4b5568;
+  text-align: center;
+  padding: 16px;
+  transition: all .2s ease;
+  background: #f8fafc;
+}
+
+.dropzone:hover, .dropzone:active {
+  border-color: #1f3864;
+  background: #f0f4f9;
+}
+
+.dropzone-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.drop-icon {
+  font-size: 36px;
+  margin-bottom: 2px;
+}
+
+.dropzone-prompt p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.dropzone-prompt .subtext {
+  font-size: 12.5px;
+  color: #7280a0;
+}
+
+.paste-notice {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f6d33;
+  background: #e6f4ea;
+  border: 1px solid #1a9850;
+  border-radius: 6px;
+  padding: 6px 12px;
+  margin-top: 10px;
+  display: inline-block;
+}
+
+.preview-img {
+  max-width: 100%;
+  max-height: 280px;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+.upload-btn-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.action-btn {
+  flex: 1;
+  min-height: 44px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #c3cbdc;
+  background: #f4f6fb;
+  color: #1f3864;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover, .action-btn:active {
+  background: #e8ecf5;
+  border-color: #1f3864;
+}
+
+.scan-btn, .download-btn {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  margin-top: 14px;
+  background: #1f3864;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 14px 20px;
+  min-height: 48px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.scan-btn:disabled {
+  background: #b7c1d6;
+  cursor: not-allowed;
+}
+
+.scan-btn:not(:disabled):hover, .scan-btn:not(:disabled):active, .download-btn:hover {
+  background: #16294c;
+}
+
+.error-msg {
+  color: #a3241d;
+  font-size: 13.5px;
+  margin-top: 10px;
+}
+
+.placeholder {
+  color: #9aa4bb;
+  font-size: 13.5px;
+}
+
+.loading-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 0;
+}
+
+.spinner {
+  font-size: 20px;
+  animation: pulse 1s infinite alternate;
+}
+
+@keyframes pulse {
+  from { transform: scale(1); }
+  to { transform: scale(1.2); }
+}
+
+.verdict-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1.5px solid;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.review-reason {
+  font-size: 13px;
+  color: #8a6d02;
+  margin: 10px 0 0;
+}
+
+.confidence {
+  font-size: 13px;
+  color: #6b7690;
+  margin: 8px 0 14px;
+}
+
+/* Mobile Responsive Table Wrapper */
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-top: 8px;
+  border-radius: 8px;
+  border: 1px solid #edeff4;
+}
+
+.fields-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 320px;
+}
+
+.fields-table th {
+  text-align: left;
+  background: #f4f6fb;
+  color: #4b5568;
+  padding: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.fields-table td {
+  padding: 10px;
+  border-top: 1px solid #edeff4;
+  vertical-align: top;
+}
+
+.field-label-cell {
+  font-weight: 600;
+  color: #2c3e50;
+  min-width: 120px;
+}
+
+.field-val-cell {
+  word-break: break-word;
+}
+
+.status-pill {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 10px;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.status-pass { background: #e6f4ea; color: #0f6d33; }
+.status-fail { background: #fdecea; color: #a3241d; }
+.status-warn { background: #fff8e1; color: #8a6d02; }
+
+.issues-box { margin-top: 18px; }
+.issues-box h3 { font-size: 14px; color: #1f3864; margin-bottom: 8px; }
+.issues-box ul { margin: 0; padding-left: 18px; font-size: 13px; }
+.issues-box li { margin-bottom: 6px; }
+.issue-high { color: #a3241d; }
+.issue-low { color: #8a6d02; }
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #1f3864;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.footer {
+  margin-top: 36px;
+  text-align: center;
+  font-size: 12px;
+  color: #9aa4bb;
+}
+
+/* =================================================== */
+/* Mobile Phone Breakpoints (Smartphones & Tablets)   */
+/* =================================================== */
+@media (max-width: 768px) {
+  .app {
+    padding: 0 12px 40px;
+  }
+
+  .main {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    margin-top: 16px;
+  }
+
+  .upload-panel, .result-panel, .history-panel {
+    padding: 16px;
+    border-radius: 10px;
+  }
+
+  .logo {
+    font-size: 22px;
+  }
+
+  .tagline {
+    font-size: 13px;
+  }
+
+  .upload-btn-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .action-btn {
+    width: 100%;
+    min-height: 46px;
+  }
+
+  .scan-btn, .download-btn {
+    min-height: 50px;
+    font-size: 16px;
+  }
+
+  .dropzone {
+    min-height: 180px;
+    padding: 12px;
+  }
+
+  .drop-icon {
+    font-size: 32px;
+  }
+}

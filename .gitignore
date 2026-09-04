@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+venv/
+.venv/
+__pycache__/
+backend/__pycache__/
+*.pyc
+
+# Builds & Outputs
+dist/
+frontend/dist/
+backend/uploads/*
+!backend/uploads/.gitkeep
+backend/reports/*
+!backend/reports/.gitkeep
+backend/packsure.db
+
+# Environment & Logs
+.env
+.env.local
+*.log
+
+# IDE & OS
+.DS_Store
+.vscode/
+.idea/
