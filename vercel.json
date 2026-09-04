@@ -5,6 +5,10 @@
   "framework": "vite",
   "rewrites": [
     {
+      "source": "/api/:path*",
+      "destination": "https://packsure-sih-2026.loca.lt/api/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
