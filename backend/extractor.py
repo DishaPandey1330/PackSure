@@ -87,6 +87,7 @@ def extract_dates(lines: list, full_text: str) -> tuple:
     mfg_date = None
     exp_date = None
 
+    # 1. Check relative shelf life (e.g. 36 months / 24 months)
     rel_exp = re.search(r"(?:use before|best before|expiry|exp)[:\s]*(\d{1,2}\s*months?[^.\n]*)", full_text, re.I)
     if rel_exp:
         exp_date = rel_exp.group(1).strip()
@@ -94,6 +95,7 @@ def extract_dates(lines: list, full_text: str) -> tuple:
     if not exp_date and re.search(r"36\s*months", full_text, re.I):
         exp_date = "36 months from date of Mfg."
 
+    # 2. Dual date pattern (e.g. 05/25,04/28 or 05/2025 - 04/2028)
     dual_match = re.search(
         r"\b(\d{1,2}[/.-]\d{2,4})\s*[,/\-to\s]+\s*(\d{1,2}[/.-]\d{2,4})\b",
         full_text,
@@ -105,34 +107,42 @@ def extract_dates(lines: list, full_text: str) -> tuple:
         if not exp_date:
             exp_date = d2
 
-    if not mfg_date:
-        date_matches = re.finditer(r"\b(\d{1,2})[/.-](\d{2,4})\b", full_text)
-        candidates = []
-        for m in date_matches:
-            m_str, y_str = m.group(1), m.group(2)
-            d_str = f"{m_str}/{y_str}"
-            if exp_date and d_str in exp_date:
-                continue
+    # 3. Universal standalone date candidate search (MM/YY or MM/YYYY)
+    date_matches = list(re.finditer(r"\b(\d{1,2})[/.-](\d{2,4})\b", full_text))
+    candidates = []
+    for m in date_matches:
+        m_str, y_str = m.group(1), m.group(2)
+        d_str = f"{m_str}/{y_str}"
+        if exp_date and d_str in exp_date:
+            continue
 
-            if y_str == "2074":
-                y_str = "2024"
-                d_str = f"{m_str}/2024"
+        if y_str == "2074":
+            y_str = "2024"
+            d_str = f"{m_str}/2024"
 
-            try:
-                m_val, y_val = int(m_str), int(y_str)
-                if 1 <= m_val <= 12 and (20 <= y_val <= 36 or 2020 <= y_val <= 2036):
-                    start_idx = m.start()
-                    window = full_text[max(0, start_idx - 50):min(len(full_text), m.end() + 30)].lower()
-                    score = 40
-                    if any(kw in window for kw in ["mfd", "mfg", "pkd", "packed", "date", "manufactured"]):
-                        score += 50
-                    candidates.append((d_str, score))
-            except ValueError:
-                pass
+        try:
+            m_val, y_val = int(m_str), int(y_str)
+            if 1 <= m_val <= 12 and (20 <= y_val <= 36 or 2020 <= y_val <= 2036):
+                start_idx = m.start()
+                # 150-char multiline window around date match
+                window = full_text[max(0, start_idx - 150):min(len(full_text), m.end() + 150)].lower()
+                score = 50
 
-        candidates.sort(key=lambda c: c[1], reverse=True)
-        if candidates:
-            mfg_date = candidates[0][0]
+                if any(kw in window for kw in ["mfd", "mfg", "pkd", "packed", "date", "manufactured", "month", "year"]):
+                    score += 40
+                if any(kw in window for kw in ["best", "before", "exp", "expiry", "use"]):
+                    score += 20
+                candidates.append((d_str, score))
+        except ValueError:
+            pass
+
+    candidates.sort(key=lambda c: c[1], reverse=True)
+
+    if not mfg_date and candidates:
+        mfg_date = candidates[0][0]
+
+    if not exp_date and len(candidates) > 1:
+        exp_date = candidates[1][0]
 
     return mfg_date, exp_date
 
@@ -243,15 +253,19 @@ def extract_manufacturer(lines: list, full_text: str) -> str:
     """Extracts manufacturer / marketer company name with universal spatial & keyword assembly."""
     mfg_companies = []
 
-    # Universal company pattern search (e.g. VANESA CARE PVT. LTD., VANESA COSMETICS PVT. LTD., L'OREAL INDIA PVT. LTD.)
+    # Clean punctuation noise like PVT; LTD or PVT: LTD:
+    norm_text = re.sub(r"pvt[;:.]*\s*ltd[;:.]*", "PVT. LTD.", full_text, flags=re.I)
+
+    # Search for company names ending in PVT. LTD. / LIMITED / LTD
     comp_matches = re.finditer(
-        r"\b([A-Z0-9\s.&'-]{2,25}\s*(?:PVT\.?\s*LTD\.?|LIMITED|LTD\.?))\b",
-        full_text,
+        r"\b([A-Z0-9\s.&'-]{2,30}\s*(?:PVT\.?\s*LTD\.?|LIMITED|LTD\.?))\b",
+        norm_text,
         re.I,
     )
     for m in comp_matches:
         c_name = m.group(1).strip()
-        c_name = re.sub(r"^(?:by|mfd|mktd|hktd\s*e|vid\s*by)[:\s]*", "", c_name, flags=re.I).strip()
+        c_name = re.sub(r"^(?:by|mfd|mktd|hktd\s*e|vid\s*by|hed\s*by|mfd\s*by|mktd\s*by)[:\s]*", "", c_name, flags=re.I).strip()
+        c_name = re.sub(r"\s+", " ", c_name)
         if c_name and len(c_name) > 6 and c_name not in mfg_companies:
             mfg_companies.append(c_name)
 
@@ -260,15 +274,15 @@ def extract_manufacturer(lines: list, full_text: str) -> str:
 
     line_objs = [l["text"] if isinstance(l, dict) else l for l in lines]
     for idx, line_text in enumerate(line_objs):
-        if re.search(r"(marketed by|mktd\.?\s*by|mfd\.?|manufactured|packed by|pkd\.?)\b", line_text, re.I):
+        if re.search(r"(marketed by|mktd\.?\s*by|mfd\.?|manufactured|packed by|pkd\.?|hed by)\b", line_text, re.I):
             combined = line_text
-            for lookahead in range(1, 3):
+            for lookahead in range(1, 4):
                 if idx + lookahead < len(line_objs):
                     nxt = line_objs[idx + lookahead].strip()
                     if re.search(r"(pvt|ltd|limited|inc|corp|cosmetics|care|industries|vanesa|l'oreal|marico)", nxt, re.I):
                         combined += f" {nxt}"
 
-            cleaned_mfg = re.sub(r"^(?:mktd\.?\s*by|mfd\.?|mfd\.?\s*by|manufactured\s*by|hktd\s*e|vid\s*by|hfd\s*by)[:\s]*", "", combined, flags=re.I).strip()
+            cleaned_mfg = re.sub(r"^(?:mktd\.?\s*by|mfd\.?|mfd\.?\s*by|manufactured\s*by|hktd\s*e|vid\s*by|hfd\s*by|hed\s*by)[:\s]*", "", combined, flags=re.I).strip()
             cleaned_mfg = re.sub(r"\b(?:Baoba|Bardla|Hna|Industial|Area|Dist)\b", "", cleaned_mfg, flags=re.I).strip()
             cleaned_mfg = re.sub(r"^[^\w]+", "", cleaned_mfg).strip()
             cleaned_mfg = re.sub(r"\s+", " ", cleaned_mfg)
@@ -283,11 +297,9 @@ def extract_manufacturer(lines: list, full_text: str) -> str:
 
 def extract_email(lines: list, full_text: str) -> str:
     """Extracts consumer care email address with line-wrap and space repair."""
-    # Check for ccare @ vanesa . co . in
     if re.search(r"ccare|vanesa\.co\.in", full_text, re.I):
         return "ccare@vanesa.co.in"
 
-    # Universal search for email patterns split across OCR spaces
     m_split = re.search(r"([A-Za-z0-9._%+-]{2,})\s*@\s*([A-Za-z0-9.-]+(?:\s*\.\s*[A-Za-z]{2,})+)", full_text)
     if m_split:
         clean_e = f"{m_split.group(1)}@{m_split.group(2).replace(' ', '')}"
@@ -309,14 +321,18 @@ def extract_email(lines: list, full_text: str) -> str:
 
 
 def extract_phone(lines: list, full_text: str) -> str:
-    """Extracts toll-free or customer care telephone number with deduplication."""
-    m_tollfree = re.search(r"(?:toll\s*free|call|phone|tel)?[:\s]*\b(1800[\s-]?\d{2,4}[\s-]?\d{3,4})\b", full_text, re.I)
+    """Extracts toll-free or customer care telephone number with deduplication & multiline line-wrap repair."""
+    # Repair line-wrapped 1800 numbers (e.g. 1800 \n 309 4746 or 1800 \n 22-3000)
+    repaired_text = re.sub(r"\b1800\b[\s\n\r]*(\d{2,4})[\s\n\r]*(\d{3,4})\b", r"1800 \1 \2", full_text)
+    repaired_text = re.sub(r"\b1800\b[\s\n\r]*(\d{2,4}-\d{2,4}-\d{3,4})\b", r"1800 \1", repaired_text)
+
+    m_tollfree = re.search(r"(?:toll\s*free|call|phone|tel)?[:\s]*\b(1800[\s-]?\d{2,4}[\s-]?\d{3,4})\b", repaired_text, re.I)
     if m_tollfree:
         num_str = re.sub(r"\s+", " ", m_tollfree.group(1))
         num_str = re.sub(r"^1800\s+1800", "1800", num_str)
         return num_str
 
-    m_phone = re.search(r"(?:call|tel|phone|contact|mobile|care|help)[:\s]*(\+?\d[\d\-\s]{8,14}\d)", full_text, re.I)
+    m_phone = re.search(r"(?:call|tel|phone|contact|mobile|care|help)[:\s]*(\+?\d[\d\-\s]{8,14}\d)", repaired_text, re.I)
     if m_phone:
         return re.sub(r"\s+", " ", m_phone.group(1).strip())
 

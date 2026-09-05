@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  const backendHost = process.env.BACKEND_URL || "https://config-extremely-magnificent-conference.trycloudflare.com";
+  const backendHost = process.env.BACKEND_URL || "https://top-featuring-think-learning.trycloudflare.com";
   const targetUrl = `${backendHost.replace(/\/$/, "")}/api/scan`;
 
   try {
