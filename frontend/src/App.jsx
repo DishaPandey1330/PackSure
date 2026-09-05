@@ -1,9 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import "./App.css";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL
-  ? (import.meta.env.VITE_API_BASE_URL.endsWith('/api') ? import.meta.env.VITE_API_BASE_URL : `${import.meta.env.VITE_API_BASE_URL}/api`)
-  : "/api";
+const API_BASE = "/api";
 
 const VERDICT_STYLES = {
   Compliant: { bg: "#e6f4ea", border: "#1a9850", text: "#0f6d33", icon: "✓" },

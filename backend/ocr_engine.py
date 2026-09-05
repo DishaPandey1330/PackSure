@@ -47,7 +47,8 @@ def run_ocr(image_path: str) -> dict:
             img,
             detail=1,
             paragraph=False,
-            canvas_size=1800,
+            canvas_size=1280,
+            mag_ratio=1.5,
             batch_size=8,
             workers=0,
         )
